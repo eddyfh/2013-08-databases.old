@@ -37,9 +37,6 @@ dbConnection.connect();
 var handleRequest = function(request, response) {
   // console.log('REQUEST RUNNING');
   var urlObj = ourUrl.parse(request.url);
-  // console.log('url:', request.url);
-  // console.log(urlObj.pathname);
-
 //take the substring of pathname, and if there's classes/(dirname) then we're good
 //otherwise throw 404 error
 // /classes/messages
@@ -55,9 +52,6 @@ if (pathArray[1] !== 'classes') {
 }
   console.log('pathArray[1] is: ' + pathArray[1] + '. roomName is '+roomName);
 
-  // if (urlObj.pathname !== '/1/classes/messages') {
-  //   return 'error';
-  // }
   /* Request is an http.ServerRequest object containing various data
    * about the client request - such as what URL the browser is
    * requesting. */
@@ -65,50 +59,35 @@ if (pathArray[1] !== 'classes') {
   // console.log("Serving request uri " + request.uri + " and form " + request.form);
   var statusCode = 200;
 
-//post request
   var headers = defaultCorsHeaders;
   // headers['Content-Type'] = "application/json";
   if (request.method === 'POST') {
-    var data;
-    request.on('data', function(chunk){
-      data = JSON.parse(chunk.toString());
-      console.log(data);
-      dbConnection.query('insert into messages (username, message) values ("'+data['username']+'", "'+data['text']+'")', function(err) {
-        response.writeHead(201, headers);
-        response.end();
-      });
-    });
-
     // var data;
     // request.on('data', function(chunk){
-    //   data = chunk;
-    //   data = data.toString().split('&');
-    //   for (var i = 0; i < data.length; i++){
-    //     data[i] = data[i].split('=')[1].replace(/%20/g, ' ').replace('\\', '').replace(/%2C/g, ',');
-    //   }
-    //   console.log('DATA IS ');
+    //   data = JSON.parse(chunk.toString());
     //   console.log(data);
-    //   // data = data.split(' ');
-    //   dbConnection.query('insert into messages (username, message) values ("'+data[0]+'", "'+data[1]+'")', function(err) {
+    //   dbConnection.query('insert into messages (username, message) values ("'+data['username']+'", "'+data['text']+'")', function() {
     //     response.writeHead(201, headers);
     //     response.end();
     //   });
     // });
 
+    var data;
+    request.on('data', function(chunk){
+      data = chunk;
+      data = data.toString().split('&');
+      for (var i = 0; i < data.length; i++){
+        data[i] = data[i].split('=')[1].replace(/%20/g, ' ').replace('\\', '').replace(/%2C/g, ',');
+      }
+      console.log('DATA IS ');
+      console.log(data);
+      // data = data.split(' ');
+      dbConnection.query('insert into messages (username, message) values ("'+data[0]+'", "'+data[1]+'")', function(err) {
+        response.writeHead(201, headers);
+        response.end();
+      });
+    });
 
-    // console.log(data);
-    // request.on('end', function(){
-      // data = data.join('');
-      // now we've got the data!
-      // data = JSON.parse(data);
-
-      // if (roomName !== "messages") {
-      //   roomObj.results.unshift(data);
-      // } else {
-      //   obj.results.unshift(data);
-      // }
-      //response.end(JSON.stringify(obj));
-    // });
   } else if(request.method === 'GET') {
     //below is the get request
     if (roomName !== "messages") {
@@ -119,8 +98,6 @@ if (pathArray[1] !== 'classes') {
       //if no room is selected
       // console.log('GET REQUEST MADE in msgs');
       dbConnection.query('select * from messages', function(err, rows, fields) {
-        // console.log(rows);
-        // console.log(JSON.stringify(rows));
         response.writeHead(statusCode, headers);
         response.end(JSON.stringify(rows));
       });

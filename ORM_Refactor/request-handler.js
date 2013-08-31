@@ -2,8 +2,8 @@ var ourUrl = require('url');
 var request = require("request");
 var mysql = require('mysql');
 var Sequelize = require("sequelize");
-var sequelize = new Sequelize("chat", "bacon", "eded");
-var chat = sequelize.define('chat', {
+var sequelize = new Sequelize("chat", "root", "eded");
+var chat = sequelize.define('ormchat', {
   username: Sequelize.STRING,
   message: Sequelize.STRING
 });
@@ -32,24 +32,11 @@ var roomName;
 var obj = {};
 obj.results = [{username: 'username', text: 'message', roomname: 'room'}];
 
-var dbConnection = mysql.createConnection({
-  user: "root",
-  password: "eded",
-  database: "chat"
-});
-
-dbConnection.connect();
-
 var handleRequest = function(request, response) {
-  // console.log('REQUEST RUNNING');
   var urlObj = ourUrl.parse(request.url);
-  // console.log('url:', request.url);
-  // console.log(urlObj.pathname);
-
 //take the substring of pathname, and if there's classes/(dirname) then we're good
 //otherwise throw 404 error
 // /classes/messages
-// console.log('typeof url: ' + typeof urlObj.pathname);
 var pathArray = urlObj.pathname.split("/");
 if (pathArray[1] !== 'classes') {
   //404 error
@@ -68,10 +55,8 @@ if (pathArray[1] !== 'classes') {
    * about the client request - such as what URL the browser is
    * requesting. */
   console.log("Serving request type " + request.method + " for url " + request.url);
-  // console.log("Serving request uri " + request.uri + " and form " + request.form);
   var statusCode = 200;
 
-//post request
   var headers = defaultCorsHeaders;
   // headers['Content-Type'] = "application/json";
   if (request.method === 'POST') {
@@ -79,10 +64,16 @@ if (pathArray[1] !== 'classes') {
     request.on('data', function(chunk){
       data = JSON.parse(chunk.toString());
       console.log(data);
-      dbConnection.query('insert into messages (username, message) values ("'+data['username']+'", "'+data['text']+'")', function(err) {
+      chat.sync().success(function() {
+        var newmsg = chat.build({username: data['username'], message: data['text']});
+        newmsg.save().success(function() {
+          console.log('saved!');
+        });
+      });
+      // dbConnection.query('insert into messages (username, message) values ("'+data['username']+'", "'+data['text']+'")', function(err) {
         response.writeHead(201, headers);
         response.end();
-      });
+      // });
     });
 
     // var data;
@@ -133,21 +124,21 @@ if (pathArray[1] !== 'classes') {
           /* This callback function is called once saving succeeds. */
 
           // Retrieve objects from the database:
-          chat.findAll({ where: {username: "*"} }).success(function(usrs) {
+          chat.findAll().success(function(usrs) {
             // This function is called back with an array of matches.
             for (var i = 0; i < usrs.length; i++) {
               console.log(usrs[i].username + " exists");
             }
+        response.writeHead(statusCode, headers);
+        response.end(JSON.stringify(usrs));
           // });
         });
       });
-
-      dbConnection.query('select * from messages', function(err, rows, fields) {
+      
+      // dbConnection.query('select * from messages', function(err, rows, fields) {
         // console.log(rows);
         // console.log(JSON.stringify(rows));
-        response.writeHead(statusCode, headers);
-        response.end(JSON.stringify(rows));
-      });
+      // });
     }
 
   } else if(request.method === 'OPTIONS'){

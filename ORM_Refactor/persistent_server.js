@@ -6,13 +6,6 @@ var request = require("request"); // DELETE THIS LATER
 /* You'll need to fill the following out with your mysql username and password.
  * database: "chat" specifies that we're using the database called
  * "chat", which we created by running schema.sql.*/
-var dbConnection = mysql.createConnection({
-  user: "root",
-  password: "eded",
-  database: "chat"
-});
-
-dbConnection.connect();
 
 /* Now you can make queries to the Mysql database using the
  * dbConnection.query() method.
@@ -24,7 +17,6 @@ dbConnection.connect();
 
 var http = require("http");
 var requestHandler = require('./request-handler.js');
-requestHandler.dbConnection = dbConnection;
 var port = 8080;
 var ip = "127.0.0.1";
 var server = http.createServer(requestHandler.handleRequest);
@@ -32,7 +24,6 @@ console.log("Listening on http://" + ip + ":" + port);
 server.listen(port, ip);
 // dbConnection.query('insert')
 
-dbConnection.end();
 
 // var tablename = "messages";
 // dbConnection.query("DELETE FROM " + tablename);

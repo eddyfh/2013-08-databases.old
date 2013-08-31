@@ -12,7 +12,7 @@ var dbConnection = mysql.createConnection({
   database: "chat"
 });
 
-dbConnection.connect();
+// dbConnection.connect();
 
 /* Now you can make queries to the Mysql database using the
  * dbConnection.query() method.
@@ -32,7 +32,7 @@ console.log("Listening on http://" + ip + ":" + port);
 server.listen(port, ip);
 // dbConnection.query('insert')
 
-dbConnection.end();
+// dbConnection.end();
 
 // var tablename = "messages";
 // dbConnection.query("DELETE FROM " + tablename);
